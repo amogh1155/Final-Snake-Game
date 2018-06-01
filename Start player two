@@ -1,0 +1,36 @@
+package sn;
+
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class StartPlayerTwo implements ActionListener {
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+
+		JFrame frame = new JFrame("Level");
+		JPanel panel = new JPanel();
+		JButton easy = new JButton("Easy");
+		JButton medium = new JButton("Medium");
+		JButton hard = new JButton("Hard");
+
+		frame.add(panel);
+		panel.add(easy);
+		panel.add(medium);
+		panel.add(hard);
+
+		
+		frame.setVisible(true);
+		frame.setSize(250, 250);
+		easy.addActionListener( new easy(2,500,1000));
+		medium.addActionListener(new medium(2,500,500));
+		hard.addActionListener(new hard(2,250,250));
+	}
+
+}
