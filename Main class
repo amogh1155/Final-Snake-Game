@@ -1,0 +1,45 @@
+package sn;
+
+
+import java.awt.Dimension;
+import java.util.Scanner;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+
+public class MainClass {
+
+	public static void main(String[] args) {
+		
+		JFrame StartScreen = new JFrame("Snake Start Screen"); 
+		StartScreen.setVisible(true);
+		StartScreen.setSize(250, 250);
+		
+		
+		JPanel StartScreenContents = new JPanel();
+		StartScreen.add(StartScreenContents);	
+		JButton OnePlayer = new JButton("One PLayer");
+		JButton TwoPlayer = new JButton("Two Player");
+		JButton Directions = new JButton("Directions");
+		JButton Leaderboard = new JButton("Leaderboard");
+
+		
+		StartScreenContents.add(OnePlayer);
+		StartScreenContents.add(TwoPlayer);
+		StartScreenContents.add(Directions);
+		StartScreenContents.add(Leaderboard);
+		
+		
+		
+		OnePlayer.addActionListener(new StartPlayerOne());
+		TwoPlayer.addActionListener(new StartPlayerTwo());
+		Directions.addActionListener(new Directions());
+		Leaderboard.addActionListener(new Leaderboard());
+		
+		StartScreen.setVisible(true);
+		StartScreen.setSize(250, 250);
+	}
+
+}
