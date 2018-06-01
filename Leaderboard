@@ -1,0 +1,25 @@
+package sn;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+public class Leaderboard implements ActionListener {
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		ArrayList<String> names = setLeaderboard.getWords();
+		ArrayList<Integer> scores = setLeaderboard.getScores();
+		// TODO Auto-generated method stub
+		JFrame frame = new JFrame();
+		JPanel panel = new JPanel();
+		for( int i = 0; i < names.size(); i++){
+			
+		}
+		
+	}
+
+}
