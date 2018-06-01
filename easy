@@ -1,0 +1,44 @@
+package sn;
+
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JFrame;
+
+public class easy implements  ActionListener{
+	private int typeOfGame, length, width;
+
+	public easy(int typeOfGame, int length, int width) {
+		// TODO Auto-generated constructor stub
+		this.typeOfGame = typeOfGame;
+		this.length = length;
+		this.width = width;
+		
+	}
+	public void actionPerformed(ActionEvent e) {
+		if (typeOfGame == 1){
+		JFrame frame = new JFrame("Snake");
+		frame.setContentPane(new GamePannel(length, width));
+		frame.setResizable(false);
+		frame.pack();
+ 
+		frame.setPreferredSize(new Dimension (GamePannel.width, GamePannel.length));
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);	
+		} else if (typeOfGame == 2){
+			JFrame frame = new JFrame("Snake");
+			frame.setContentPane(new GamePannelDoublePlayer(length, width));
+			frame.setResizable(false);
+			frame.pack();
+	 
+			frame.setPreferredSize(new Dimension (GamePannel.width, GamePannel.length));
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);	
+			
+		}
+		
+		
+	}
+
+}
