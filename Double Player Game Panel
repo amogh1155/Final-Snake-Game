@@ -1,0 +1,504 @@
+package sn;
+
+import java.awt.Color;
+import javax.media.*;
+import java.net.URL;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
+import javax.swing.JPanel;
+
+@SuppressWarnings("serial")
+public class GamePannelDoublePlayer extends JPanel implements Runnable, KeyListener {
+
+	public static int width;
+	public static int length;
+	// Game Loop
+	private Thread thread;
+	private boolean running;
+	private long targetTime;
+
+	// Render
+	private Graphics2D g2d;
+	private BufferedImage image;
+	private int FirstColor;
+
+	// Game Stuff
+	private final int SIZE = 10;
+	Entity headFirst, headSecond, apple, apple1, apple2;
+	public ArrayList<Entity> snakeFirst;
+	public ArrayList<Entity> snakeSecond;
+	private int countOfApples, Player1score, Player2score;
+	private int level;
+	private boolean gameover;
+
+	// movement
+	private int dx, dy, dx1, dy1;
+
+	// Key Input
+	private boolean up, down, right, left, start;
+	private boolean up1, down1, right1, left1;
+
+	@SuppressWarnings("static-access")
+	public GamePannelDoublePlayer(int length, int width) {
+		this.width = width;
+		this.length = length;
+		down1 = true;
+		setPreferredSize(new Dimension(this.width, this.length));
+		setFocusable(true);
+		requestFocus();
+		addKeyListener(this);
+		Player1score = 0;
+		Player2score =0;
+	}
+
+	public void addNotify() {
+		super.addNotify();
+		thread = new Thread(this);
+		thread.start();
+	}
+
+	private void setFPS(int fps) {
+		targetTime = 1000 / fps;
+
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
+		int k = e.getKeyCode();
+
+		if (k == KeyEvent.VK_UP)
+			up = true;
+		if (k == KeyEvent.VK_DOWN)
+			down = true;
+		if (k == KeyEvent.VK_LEFT)
+			left = true;
+		if (k == KeyEvent.VK_RIGHT)
+			right = true;
+		if (k == KeyEvent.VK_ENTER)
+			start = true;
+
+		if (k == KeyEvent.VK_W)
+			up1 = true;
+		if (k == KeyEvent.VK_S)
+			down1 = true;
+		if (k == KeyEvent.VK_D)
+			right1 = true;
+		if (k == KeyEvent.VK_A)
+			left1 = true;
+
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		int k = e.getKeyCode();
+
+		if (k == KeyEvent.VK_UP)
+			up = false;
+		if (k == KeyEvent.VK_DOWN)
+			down = false;
+		if (k == KeyEvent.VK_LEFT)
+			left = false;
+		if (k == KeyEvent.VK_RIGHT)
+			right = false;
+		if (k == KeyEvent.VK_ENTER)
+			start = false;
+
+		if (k == KeyEvent.VK_W)
+			up1 = false;
+		if (k == KeyEvent.VK_S)
+			down1 = false;
+		if (k == KeyEvent.VK_D)
+			right1 = false;
+		if (k == KeyEvent.VK_A)
+			left1 = false;
+
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		if (running)
+			return;
+		init();
+		long startTime;
+		long elapsed;
+		long wait;
+		while (running) {
+			startTime = System.nanoTime();
+
+			update();
+			requestRender();
+
+			elapsed = System.nanoTime() - startTime;
+			wait = targetTime - elapsed / 1000000;
+			if (wait > 0) {
+				try {
+					Thread.sleep(wait);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	private void init() {
+		// TODO Auto-generated method stub
+		image = new BufferedImage(width, length, BufferedImage.TYPE_INT_ARGB);
+		g2d = image.createGraphics();
+		running = true;
+		setUpLevel();
+		gameover = false;
+		level = 1;
+		setFPS(level * 10);
+
+	}
+
+	private void setUpLevel() {
+		snakeFirst = new ArrayList<Entity>();
+		snakeSecond = new ArrayList<Entity>();
+		headFirst = new Entity(SIZE);
+		headSecond = new Entity(SIZE);
+		headFirst.setPosition(width / 2, length / 2);
+		headSecond.setPosition(width / 4, length / 4);
+		snakeFirst.add(headFirst);
+		snakeSecond.add(headSecond);
+
+		for (int i = 1; i < 3; i++) {
+			Entity e = new Entity(SIZE);
+			Entity f = new Entity(SIZE);
+			e.setPosition(headFirst.getX() + (i * SIZE), headFirst.getY());
+			f.setPosition(headSecond.getX() - (i * SIZE), headSecond.getY());
+			snakeFirst.add(e);
+			snakeSecond.add(f);
+
+		}
+		apple = new Entity(SIZE);
+		apple1 = new Entity(SIZE);
+		apple2 = new Entity(SIZE);
+		setApple();
+		setApple1();
+		setApple2();
+		countOfApples = 0;
+		gameover = false;
+		level = 1;
+		dy = dx = 0;
+		setFPS(level * 10);
+	}
+
+	public void setApple() {
+		int x = (int) (Math.random() * (width - SIZE));
+		int y = (int) (Math.random() * (length - SIZE));
+		x = x - (x % SIZE);
+		y = y - (y % SIZE);
+		apple.setPosition(x, y);
+
+	}
+	public void setApple1() {
+		int x = (int) (Math.random() * (width - SIZE));
+		int y = (int) (Math.random() * (length - SIZE));
+		x = x - (x % SIZE);
+		y = y - (y % SIZE);
+		apple1.setPosition(x, y);
+
+	}
+	public void setApple2() {
+		int x = (int) (Math.random() * (width - SIZE));
+		int y = (int) (Math.random() * (length - SIZE));
+		x = x - (x % SIZE);
+		y = y - (y % SIZE);
+		apple2.setPosition(x, y);
+
+	}
+
+	private void requestRender() {
+		// TODO Auto-generated method stub
+		render(g2d);
+		Graphics g = getGraphics();
+		g.drawImage(image, 0, 0, null);
+		g.dispose();
+	}
+
+	private void update() {
+		// TODO Auto-generated method stub
+		if (countOfApples % 5 == 0) {
+			int r = (int) Math.random() * 226;
+			int g = (int) Math.random() * 226;
+			int b = (int) Math.random() * 226;
+			g2d.setColor(new Color(r, g, b));
+			renderColorofSnake(g2d, snakeFirst);
+			r = (int) Math.random() * 226;
+			g = (int) Math.random() * 226;
+			b = (int) Math.random() * 226;
+			g2d.setColor(new Color(r, g, b));
+			renderColorofSnake(g2d, snakeSecond);
+		}
+		if (gameover) {
+			if (start) {
+				Player1score = 0;
+				Player2score = 0;
+				up1 = down1 = left1= right1 = false;
+				setUpLevel();
+			}
+			return;
+		}
+
+		if (up && dy == 0) {
+			dy = -SIZE;
+			dx = 0;
+		}
+		if (down && dy == 0) {
+			dy = SIZE;
+			dx = 0;
+		}
+		if (left && dx == 0) {
+			dy = 0;
+			dx = -SIZE;
+		}
+		if (right && dx == 0 && dy != 0) {
+			dy = 0;
+			dx = SIZE;
+		}
+
+		if (up1 && dy1 == 0) {
+			dy1 = -SIZE;
+			dx1 = 0;
+		}
+		if (down1 && dy1 == 0) {
+			dy1 = SIZE;
+			dx1 = 0;
+		}
+		if (left1 && dx1 == 0) {
+			dy1 = 0;
+			dx1 = -SIZE;
+		}
+		if (right1 && dx1 == 0 && dy1 != 0) {
+			dy1 = 0;
+			dx1 = SIZE;
+		}
+
+		if (dx != 0 || dy != 0) {
+
+			for (int i = snakeFirst.size() - 1; i > 0; i--) {
+				snakeFirst.get(i).setPosition(snakeFirst.get(i - 1).getX(), snakeFirst.get(i - 1).getY());
+			}
+			headFirst.move(dx, dy);
+
+			for (int i = snakeSecond.size() - 1; i > 0; i--) {
+				snakeSecond.get(i).setPosition(snakeSecond.get(i - 1).getX(), snakeSecond.get(i - 1).getY());
+			}
+			headSecond.move(dx1, dy1);
+		}
+
+		for (Entity e : snakeFirst) {
+			if (e.isCollsion(headFirst)) {
+				gameover = true;
+				Player2score += 5;
+				break;
+			}
+		}
+		for (Entity e : snakeFirst) {
+			if (e.isCollsion(headSecond)) {
+				gameover = true;
+				Player1score += 5;
+				break;
+			}
+		}
+
+		for (Entity f : snakeSecond) {
+			if (f.isCollsion(headSecond)) {
+				gameover = true;
+				Player1score += 5;
+				break;
+			}
+		}		for (Entity f : snakeSecond) {
+			if (f.isCollsion(headFirst)) {
+				Player2score += 5;
+				gameover = true;
+				break;
+			}
+		}
+
+		if (apple.isCollsion(headFirst)) {
+			countOfApples++;
+			Player1score++;
+			setApple();
+
+			Entity v = new Entity(SIZE);
+			v.setPosition(-100, -100);
+			snakeFirst.add(v);
+			if (countOfApples % 5 == 0) {
+				level++;
+				setFPS(level * 10);
+			}
+
+		}
+		
+		if (apple1.isCollsion(headFirst)) {
+			countOfApples++;
+			Player1score++;
+			setApple1();
+
+			Entity v = new Entity(SIZE);
+			v.setPosition(-100, -100);
+			snakeFirst.add(v);
+			if (countOfApples % 5 == 0) {
+				level++;
+				setFPS(level * 10);
+			}
+
+		}
+		if (apple2.isCollsion(headFirst)) {
+			countOfApples++;
+			Player1score++;
+			setApple2();
+
+			Entity v = new Entity(SIZE);
+			v.setPosition(-100, -100);
+			snakeFirst.add(v);
+			if (countOfApples % 5 == 0) {
+				level++;
+				setFPS(level * 10);
+			}
+
+		}
+		if (apple.isCollsion(headSecond)) {
+			countOfApples++;
+			Player2score++;
+			setApple();
+
+			Entity v = new Entity(SIZE);
+			v.setPosition(-100, -100);
+			snakeSecond.add(v);
+			if (countOfApples % 5 == 0) {
+				level++;
+				setFPS(level * 10);
+			}
+
+		}
+		
+		if (apple1.isCollsion(headSecond)) {
+			countOfApples++;
+			Player2score++;
+			setApple1();
+
+			Entity v = new Entity(SIZE);
+			v.setPosition(-100, -100);
+			snakeSecond.add(v);
+			if (countOfApples % 5 == 0) {
+				level++;
+				setFPS(level * 10);
+			}
+
+		}
+		
+		if (apple2.isCollsion(headSecond)) {
+			countOfApples++;
+			Player2score++;
+			setApple2();
+
+			Entity v = new Entity(SIZE);
+			v.setPosition(-100, -100);
+			snakeSecond.add(v);
+			if (countOfApples % 5 == 0) {
+				level++;
+				setFPS(level * 10);
+			}
+
+		}
+
+
+		if (headFirst.getX() < 0) {
+			headFirst.setX(width);
+		}
+		if (headFirst.getY() < 0) {
+			headFirst.setY(length);
+		}
+		if (headFirst.getX() > width) {
+			headFirst.setX(0);
+		}
+		if (headFirst.getY() > length) {
+			headFirst.setY(0);
+		}
+		if (headSecond.getX() < 0) {
+			headSecond.setX(width);
+		}
+		if (headSecond.getY() < 0) {
+			headSecond.setY(length);
+		}
+		if (headSecond.getX() > width) {
+			headSecond.setX(0);
+		}
+		if (headSecond.getY() > length) {
+			headSecond.setY(0);
+		}
+	}
+
+	private void renderColorofSnake(Graphics2D g2d, ArrayList<Entity> theSnake) {
+		for (Entity e : theSnake) {
+
+			e.render(g2d);
+		}
+	}
+
+	private void render(Graphics2D g2d2) {
+		// TODO Auto-generated method stub
+		g2d.clearRect(0, 0, width, length);
+
+//		g2d.setColor(Color.GREEN);
+//		renderColorofSnake(g2d, snakeFirst);
+
+		g2d.setColor(Color.WHITE);
+		renderColorofSnake(g2d, snakeFirst);
+
+		g2d.setColor(Color.BLUE);
+		renderColorofSnake(g2d, snakeSecond);
+
+		g2d.setColor(Color.BLUE);
+		snakeFirst.get(0).render(g2d);
+		g2d.setColor(Color.GREEN);
+		snakeSecond.get(0).render(g2d);
+
+		g2d.setColor(Color.RED);
+		apple.render(g2d);
+		apple1.render(g2d);
+		apple2.render(g2d);
+
+		if (gameover) {
+			g2d.setColor(Color.RED);
+			int greaterScore;
+			if (Player1score > 	Player2score){
+				g2d.drawString("Player 1 Wins", width / 2 - 95, length / 2 - 25);
+			} else if (Player1score< Player2score){
+				g2d.drawString("Player 2 Wins", width / 2 - 95, length / 2-25);
+			}else {
+				g2d.drawString("It is a Tie", width / 2 - 95, length / 2-25);
+			}
+			g2d.drawString("Game Over Click Enter to Restart", width / 2 - 95, length / 2);
+
+		}
+
+		g2d.setColor(Color.WHITE);
+		g2d.drawString("Count Of Apples : " + countOfApples + " Level : " + level, width / 2 - 50, 10);
+		g2d.drawString("Player 1 Score:  : " + Player1score, width - 115, 10);
+		g2d.drawString("Player 2 Score:  : " + Player2score, 10, 10);
+
+		if (dx == 0 && dy == 0) {
+			g2d.setColor(Color.WHITE);
+			g2d.drawString("Start", width / 2, length / 2);
+		}
+	}
+}
